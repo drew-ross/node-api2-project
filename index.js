@@ -8,7 +8,9 @@ server.use(express.json());
 
 server.get('/', (req, res) => {
   res.status(200).send('API running.');
-})
+});
+
+server.use('/api/posts', postsRouter);
 
 server.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
