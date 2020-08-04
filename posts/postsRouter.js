@@ -7,7 +7,7 @@ const router = express.Router();
 router.post('/', (req, res) => {
   if (req.body.hasOwnProperty('title') && req.body.hasOwnProperty('contents')) {
     db.insert(req.body)
-      .then(post => res.status(201).json(post))
+      .then(post => res.status(201).json(req.body))
       .catch(err => res.status(500).json({ error: 'There was an error while saving the post to the database' }));
   } else {
     res.status(400).json({ error: 'Please provide title and contents for the post.' });
@@ -15,7 +15,21 @@ router.post('/', (req, res) => {
 });
 
 router.post('/:id/comments', (req, res) => {
-
+  db.findById(req.params.id)
+    .then(post => {
+      if (post.length > 0) {
+        if (req.body.hasOwnProperty('text')) {
+          db.insertComment({ ...req.body, post_id: req.params.id })
+            .then(comment => res.status(201).json(req.body))
+            .catch(err => res.status(500).json({ error: 'There was an error while saving the comment to the database' }));
+        } else {
+          res.status(400).json({ error: 'Please provide text for the comment.' });
+        }
+      } else {
+        res.status(404).json({ message: 'The post with the specified ID does not exist.' });
+      }
+    })
+    .catch(err => res.status(500).json({ error: 'There was an error while saving the comment to the database' }));
 });
 
 router.get('/', (req, res) => {
@@ -51,7 +65,7 @@ router.get('/:id/comments', (req, res) => {
 router.delete('/:id', (req, res) => {
   db.remove(req.params.id)
     .then(post => {
-      console.log(post)
+      console.log(post);
       if (post) {
         res.status(204).end();
       } else {
