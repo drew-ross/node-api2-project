@@ -7,7 +7,11 @@ const router = express.Router();
 router.post('/', (req, res) => {
   if (req.body.hasOwnProperty('title') && req.body.hasOwnProperty('contents')) {
     db.insert(req.body)
-      .then(post => res.status(201).json(req.body))
+      .then(post => {
+        db.findById(post.id)
+          .then(newPost => res.status(201).json(newPost))
+          .catch(err => res.status(500).json({ error: 'The post may have been created but the server could not return the newly created post.' }));
+      })
       .catch(err => res.status(500).json({ error: 'There was an error while saving the post to the database' }));
   } else {
     res.status(400).json({ error: 'Please provide title and contents for the post.' });
@@ -65,7 +69,6 @@ router.get('/:id/comments', (req, res) => {
 router.delete('/:id', (req, res) => {
   db.remove(req.params.id)
     .then(post => {
-      console.log(post);
       if (post) {
         res.status(204).end();
       } else {
